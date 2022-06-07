@@ -85,7 +85,7 @@ def histogram_difference_strategy(input_video: np.array, alpha: float) -> np.arr
 
     return selected_frames
     
-def edge_ratio_strategy(input_video: np.array, threshold: float) -> np.array:
+def edge_ratio_strategy(input_video: np.array, T1: float) -> np.array:
     """
     Calculates the edge pixel ration between adjacent frames of input video.
     A frame is classified as a edge using the Canny operator with sigma fixed and equal to 2.
@@ -94,7 +94,7 @@ def edge_ratio_strategy(input_video: np.array, threshold: float) -> np.array:
 
     Parameters:
     input_video: input video as a numpy array with dimension (NUMBER_OF_FRAMES, FRAME_HEIGHT, FRAME_WIDTH)
-    threshold  : threshold parameter used to classify frame as a boundary. Edge pixel ratio must be greater than threshold.
+    T1  : threshold parameter used to classify frame as a boundary. Edge pixel ratio must be greater than T1.
     """
     frame_edges          = np.array(list(map(lambda x: canny(x, sigma = 2), input_video))) #canny operator along frames
     edge_pixel_amount    = np.sum(frame_edges, axis = (1,2)) # sum number of edge pixel in each frame
@@ -108,20 +108,23 @@ def edge_ratio_strategy(input_video: np.array, threshold: float) -> np.array:
                            np.divide(edge_pixel_amount[1:], edge_pixel_amount[:-1]),
                            np.divide(edge_pixel_amount[:-1], edge_pixel_amount[1:]))
 
-    selected_frames = (np.argwhere(edge_ratio > threshold)).ravel()
+    selected_frames = (np.argwhere(edge_ratio > T1)).ravel()
     print('Selected frames: ', selected_frames)
 
     return selected_frames
 
 
-def apply_chosen_technique(input_video, chosen_technique, *args):
+def apply_shot_boundary_detection(input_video, **args):
+    print(args)
+    detection_method = args.pop('detection_method')
+    
     # getting function name and function object for every function defined as _strategy
     techniques = {key[:-9]: value for key,value in globals().items() if key.endswith('_strategy')}
     
 
     # applying the function technique chosen by user
-    if chosen_technique in techniques.keys():
-        return techniques[chosen_technique](input_video, *args)
+    if detection_method in techniques.keys():
+        return techniques[detection_method](input_video, **args)
     
     # raising error if invalid technique argument
     else:
