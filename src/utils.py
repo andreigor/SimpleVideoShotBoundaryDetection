@@ -3,13 +3,10 @@ import matplotlib.pyplot as plt
 from skimage.util import view_as_blocks
 import cv2
 
-
-
 def plot_frames_metrics(frames_metrics, threshold):
     fig, ax = plt.subplots(figsize = (20,6))
     ax.axhline(y = threshold, color = 'r', linestyle = '--')
     ax.plot(frames_metrics, linewidth = 2)
-
     ax.set_xlabel('frames', fontsize = 18, fontweight = 'bold')
     ax.set_ylabel('metric', fontsize = 18, fontweight = 'bold')
     plt.show()

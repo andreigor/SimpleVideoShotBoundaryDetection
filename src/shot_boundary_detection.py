@@ -1,7 +1,5 @@
-import sys
+import time
 import argparse
-
-
 
 from utils import *
 from detection_methods import apply_shot_boundary_detection
@@ -35,9 +33,10 @@ def main():
     # reading input parameters
     args = parse_input_args()
     input_video_path  = args.pop('input_video')
-    output_video_path = args.pop('output_video')
+    output_video_path = '../outputs/' + args.pop('output_video')
     
     # reading input video
+    print("Reding input video...\n")
     input_video           = read_video_as_numpy_hsv_array(input_video_path)
     grayscale_input_video = input_video[:,:,:,2].copy()
 
@@ -46,14 +45,17 @@ def main():
     input_video           = np.delete(input_video, 0, axis = 0) 
 
     # applying shot boundary detection
+    print('Applying {} technique to video...\n'.format(args['detection_method']))
+    start_time = time.time()
     selected_frames = apply_shot_boundary_detection(grayscale_input_video, **args)
 
+    print('Detection finished in {:.2}s. Plotting and saving results...\n'.format(time.time() - start_time))
     # save and show output video
     save_output_video(input_video, selected_frames, output_video_path)
     output_video = input_video[selected_frames]
 
 
-    # PART JUST FOR DEBUG
+    # showing output video
     for frame in output_video:
         cv2.imshow('Frame', cv2.cvtColor(frame, cv2.COLOR_HSV2BGR))
 
