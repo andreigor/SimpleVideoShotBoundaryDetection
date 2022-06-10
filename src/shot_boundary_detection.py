@@ -6,11 +6,6 @@ import argparse
 from utils import *
 from detection_methods import apply_shot_boundary_detection
 
-class InputParameterError(Exception):
-    "Raised when input parameter is not as expected"
-    pass
-
-
 def parse_input_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('input_video', help = 'input mp4 ou mpg video', type = str)
@@ -37,7 +32,7 @@ def parse_input_args():
     return args
 
 def main():
-    # input parameters
+    # reading input parameters
     args = parse_input_args()
     input_video_path  = args.pop('input_video')
     output_video_path = args.pop('output_video')
@@ -45,12 +40,13 @@ def main():
     # reading input video
     input_video           = read_video_as_numpy_hsv_array(input_video_path)
     grayscale_input_video = input_video[:,:,:,2].copy()
-    input_video = np.delete(input_video, 0, axis = 0)
 
-    print(args)
+    # the first video frame is just a all-zeros matrix, used to aid shot boundary detection calculation.
+    # it is important to remove it from the input video
+    input_video           = np.delete(input_video, 0, axis = 0) 
+
     # applying shot boundary detection
     selected_frames = apply_shot_boundary_detection(grayscale_input_video, **args)
-
 
     # save and show output video
     save_output_video(input_video, selected_frames, output_video_path)

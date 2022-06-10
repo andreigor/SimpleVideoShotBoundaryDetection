@@ -1,11 +1,9 @@
-from re import M
 import cv2
 import numpy as np
 from skimage.feature import canny
 
-from utils import _get_frame_patches
+from utils import _get_frame_patches, plot_frames_metrics
 
-MAX_PIXEL_VALUE = 255
 
 def pixel_difference_strategy(input_video: np.array, T1: float, T2: float) -> np.array:
     """
@@ -28,8 +26,9 @@ def pixel_difference_strategy(input_video: np.array, T1: float, T2: float) -> np
     # calculating pixel difference
     pixel_difference           = np.abs(np.diff(input_video, 1, axis = 0))
     percentage_greater_than_T1 = np.count_nonzero(pixel_difference > T1, axis = (1,2)) / FRAME_DIM 
-    selected_frames            = ((np.argwhere(percentage_greater_than_T1 > T2)).ravel())
-    print('Selected frames: ', selected_frames)
+    selected_frames            = ((np.argwhere(percentage_greater_than_T1 >= T2)).ravel())
+    plot_frames_metrics(percentage_greater_than_T1, T2)
+
 
     return selected_frames
 
@@ -55,7 +54,8 @@ def block_difference_strategy(input_video: np.array, T1: float, T2: float) -> np
     frames_greater_than_T1     =  np.count_nonzero(patches_rmse > T1, axis = (1,2))
     selected_frames            = (np.argwhere(frames_greater_than_T1 >= T2)).ravel()
     
-    print('Selected frames: ', selected_frames)
+    plot_frames_metrics(frames_greater_than_T1, T2)
+
     return selected_frames
 
 def histogram_difference_strategy(input_video: np.array, alpha: float) -> np.array:
@@ -80,8 +80,8 @@ def histogram_difference_strategy(input_video: np.array, alpha: float) -> np.arr
     sigma = np.std(histogram_agg_sum[1:])
     threshold = mean + alpha * sigma
 
-    selected_frames = (np.argwhere(histogram_agg_sum > threshold)).ravel()
-    print('Selected frames: ', selected_frames)
+    selected_frames = (np.argwhere(histogram_agg_sum >= threshold)).ravel()
+    plot_frames_metrics(histogram_agg_sum, threshold)
 
     return selected_frames
     
@@ -108,14 +108,14 @@ def edge_ratio_strategy(input_video: np.array, T1: float) -> np.array:
                            np.divide(edge_pixel_amount[1:], edge_pixel_amount[:-1]),
                            np.divide(edge_pixel_amount[:-1], edge_pixel_amount[1:]))
 
-    selected_frames = (np.argwhere(edge_ratio > T1)).ravel()
-    print('Selected frames: ', selected_frames)
+    selected_frames = (np.argwhere(edge_ratio >= T1)).ravel()
+    plot_frames_metrics(edge_ratio[1:], T1)
+
 
     return selected_frames
 
 
 def apply_shot_boundary_detection(input_video, **args):
-    print(args)
     detection_method = args.pop('detection_method')
     
     # getting function name and function object for every function defined as _strategy
